@@ -24,16 +24,16 @@ public class Task {
     @Column(name = "titulo", columnDefinition = "VARCHAR(50)")
     private String titulo;
 
-    @Column(name = "descricao", columnDefinition = "LONGTEXT")
+    @Column(name = "descricao", columnDefinition = "NVARCHAR(MAX)")
     private String descricao;
 
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @Column(name = "createdAt", columnDefinition = "TIMESTAMP")
+    @Column(name = "created_at", columnDefinition = "DATETIME2")
     private LocalDateTime createdAt;
 
-    @Column(name = "updatedAt", columnDefinition = "TIMESTAMP")
+    @Column(name = "updated_at", columnDefinition = "DATETIME2")
     private LocalDateTime updatedAt;
 
 }

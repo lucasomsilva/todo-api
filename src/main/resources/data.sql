@@ -1,0 +1,12 @@
+IF
+OBJECT_ID('Task', 'U') IS NULL
+BEGIN
+CREATE TABLE Task (
+    id         INT IDENTITY(1,1) PRIMARY KEY,
+    titulo     VARCHAR(50) NOT NULL,
+    descricao  NVARCHAR(MAX) NULL,
+    status     NVARCHAR(50) NOT NULL DEFAULT 'PENDENTE',
+    created_at DATETIME2 DEFAULT SYSUTCDATETIME(),
+    updated_at DATETIME2 NULL
+)
+END
