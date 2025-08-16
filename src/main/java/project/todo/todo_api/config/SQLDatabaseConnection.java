@@ -18,7 +18,7 @@ public class SQLDatabaseConnection {
         try (Connection connection = DriverManager.getConnection(connectionUrl)) {
             System.out.println("Conectado ao banco de dados com sucesso!");
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Falha na conexão com o banco de dados", e);
         }
 
     }
