@@ -1,22 +1,19 @@
 package project.todo.todo_api.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import project.todo.todo_api.enums.Status;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TodoCreateDTO {
-
-    @NotBlank
+public class TaskResponseDTO {
+    private int id;
     private String titulo;
-
-    @NotBlank
     private String descricao;
-
-    private LocalDate createdAt;
+    private Status status;
+    private LocalDateTime createdAt;
 }
