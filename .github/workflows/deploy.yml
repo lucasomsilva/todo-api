@@ -1,0 +1,65 @@
+name: CI/CD Pipeline with SQL Server and Flyway
+
+on:
+  push:
+    branches:
+      - main
+      - qa
+      - dev
+      - feat/pipeline-sql-config
+
+  pull_request:
+    branches:
+      - main
+      - qa
+      - dev
+      - feat/pipeline-sql-config
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: "Y"
+          SA_PASSWORD: "API-todo2025"
+        ports:
+          - 1433:1433
+        options: >-
+          --health-cmd "exit 0"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Wait for SQL Server to be ready
+        run: |
+          for i in {1..30}; do
+            if /opt/mssql-tools/bin/sqlcmd -S todo-api.database.windows.net -U SA -P "API-todo2025" -Q "SELECT 1" > /dev/null 2>&1; then
+              echo "SQL Server is ready!"
+              break
+            fi
+            echo "Waiting for SQL Server..."
+            sleep 2
+          done
+
+      - name: Run Flyway migrations
+        run: |
+          flyway -url=jdbc:sqlserver://todo-api.database.windows.net:1433;databaseName=TodoListDB \
+                 -user=SA \
+                 -password=API-todo2025 \
+                 -locations=filesystem:src/main/resources/db/migration \
+                 migrate
+
+      - name: Build with Maven
+        run: mvn -B package -DskipTests
