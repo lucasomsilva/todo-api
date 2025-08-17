@@ -7,9 +7,9 @@ import java.sql.SQLException;
 public class SQLDatabaseConnection {
     public static void main(String[] args) {
         String connectionUrl =
-                "jdbc:sqlserver:localhost:1433;"
+                "jdbc:sqlserver://todo-api.database.windows.net:1433;"
                         + "database=TodoListDB;"
-                        + "user=springuser;"
+                        + "user=springuser@todo-api;"
                         + "password=API-todo2025;"
                         + "encrypt=true;"
                         + "trustServerCertificate=false;"
