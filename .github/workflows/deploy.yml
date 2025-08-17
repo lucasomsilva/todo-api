@@ -1,4 +1,4 @@
-name: CI/CD Pipeline with SQL Server and Flyway
+name: CI/CD Pipeline for SQL Server
 
 on:
   push:
@@ -18,20 +18,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    services:
-      sqlserver:
-        image: mcr.microsoft.com/mssql/server:2022-latest
-        env:
-          ACCEPT_EULA: "Y"
-          SA_PASSWORD: "API-todo2025"
-        ports:
-          - 1433:1433
-        options: >-
-          --health-cmd "exit 0"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 3
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -42,24 +28,21 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Wait for SQL Server to be ready
+      - name: Run SQL script for database setup
+        env:
+          DB_HOST: todo-api.database.windows.net
+          DB_NAME: TodoListDB
+          DB_USER: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
-          for i in {1..30}; do
-            if /opt/mssql-tools/bin/sqlcmd -S todo-api.database.windows.net -U SA -P "API-todo2025" -Q "SELECT 1" > /dev/null 2>&1; then
-              echo "SQL Server is ready!"
-              break
-            fi
-            echo "Waiting for SQL Server..."
-            sleep 2
-          done
-
-      - name: Run Flyway migrations
-        run: |
-          flyway -url=jdbc:sqlserver://todo-api.database.windows.net:1433;databaseName=TodoListDB \
-                 -user=SA \
-                 -password=API-todo2025 \
-                 -locations=filesystem:src/main/resources/db/migration \
-                 migrate
+          sudo apt-get update
+          sudo apt-get install -y mssql-tools unixodbc-dev
+          
+          /opt/mssql-tools/bin/sqlcmd -S $DB_HOST \
+                                     -d $DB_NAME \
+                                     -U $DB_USER \
+                                     -P $DB_PASSWORD \
+                                     -i ./src/main/resources/data.sql
 
       - name: Build with Maven
         run: mvn -B package -DskipTests
