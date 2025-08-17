@@ -28,6 +28,25 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      # Passo para instalar o driver sqlcmd
+      - name: Install mssql-tools
+        run: |
+          # Adiciona a chave GPG do repositório da Microsoft
+          wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.asc.gpg
+          sudo mv microsoft.asc.gpg /etc/apt/trusted.gpg.d/
+          
+          # Adiciona o repositório do Ubuntu para produtos da Microsoft
+          echo "deb [arch=amd64] https://packages.microsoft.com/ubuntu/24.04/prod noble main" | sudo tee /etc/apt/sources.list.d/mssql-prod.list
+          
+          # Atualiza a lista de pacotes e instala o mssql-tools
+          sudo apt-get update
+          sudo apt-get install -y mssql-tools
+          
+          # Adiciona o diretório da ferramenta ao PATH para que o comando seja encontrado
+          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+          source ~/.bashrc
+
+      # Passo para configurar o banco de dados
       - name: Run SQL script for database setup
         env:
           DB_HOST: todo-api.database.windows.net
@@ -35,9 +54,6 @@ jobs:
           DB_USER: ${{ secrets.DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
-          sudo apt-get update
-          sudo apt-get install -y mssql-tools unixodbc-dev
-          
           /opt/mssql-tools/bin/sqlcmd -S $DB_HOST \
                                      -d $DB_NAME \
                                      -U $DB_USER \
