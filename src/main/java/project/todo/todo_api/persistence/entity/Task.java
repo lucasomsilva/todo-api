@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "task", schema = "dbo")
+@Table(name = "task")
 public class Task {
 
     @Id
