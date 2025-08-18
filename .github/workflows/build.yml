@@ -6,14 +6,12 @@ on:
       - main
       - qa
       - dev
-      - feat/pipeline-sql-config
 
   pull_request:
     branches:
       - main
       - qa
       - dev
-      - feat/pipeline-sql-config
 
 jobs:
   build:
