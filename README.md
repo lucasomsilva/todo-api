@@ -126,17 +126,8 @@ A tabela `task` é criada automaticamente. Exemplo de estrutura:
 - created_at (datetime2)
 - updated_at (datetime2)
 
-## Observações
-- O projeto já está pronto para uso com SQL Server na nuvem.
-- Para usar outro banco, ajuste as configurações em `application.properties`.
-- O projeto utiliza validação de dados e tratamento de exceções customizadas.
-
 ## Testes
 Para rodar os testes:
 ```sh
 ./mvnw test
 ```
-
----
-
-Dúvidas? Abra uma issue ou entre em contato com o mantenedor.
