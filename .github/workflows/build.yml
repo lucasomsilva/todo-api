@@ -12,7 +12,6 @@ pr:
       - dev
       - feat/environments
 
-# Primeiro estágio: Build
 stages:
   - stage: Build
     displayName: 'Build Project'
@@ -36,54 +35,43 @@ stages:
               goals: 'package -DskipTests'
               publishJUnitResults: false
 
-          # Publica o artefato de build, como o arquivo .jar gerado pelo Maven
-          - publish: $(System.DefaultWorkingDirectory)/target/seu-projeto.jar
+          - publish: $(System.DefaultWorkingDirectory)/target/todo-api.jar
             artifact: 'drop'
 
-  # --- Início dos estágios de deploy ---
-
-  # Segundo estágio: Deploy para o ambiente de Desenvolvimento (dev)
   - stage: DeployToDev
     displayName: 'Deploy to Dev Environment'
-    dependsOn: Build # Garante que este estágio só roda depois do estágio 'Build'
+    dependsOn: Build
     jobs:
       - deployment: DeployDev
         displayName: 'Deploy to Dev'
-        environment: 'dev-environment' # Referencia o ambiente que você criou
+        environment: 'dev-environment'
         pool:
           vmImage: 'ubuntu-latest'
         strategy:
           runOnce:
             deploy:
               steps:
-                # Baixa o artefato gerado no estágio 'Build'
                 - download: current
                   artifact: 'drop'
 
-                # Aqui você adiciona as tarefas de deploy.
-                # Pode ser um comando para copiar o arquivo .jar para um servidor,
-                # um script para atualizar um contêiner Docker, etc.
                 - script: echo 'Deploying to dev-environment...'
 
-  # Terceiro estágio: Deploy para o ambiente de QA (qa)
   - stage: DeployToQA
     displayName: 'Deploy to QA Environment'
-    dependsOn: DeployToDev # Garante que este estágio só roda depois do deploy em 'dev'
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main')) # Condição para rodar apenas em builds da branch 'main'
+    dependsOn: DeployToDev
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main')
 
     jobs:
       - deployment: DeployQA
         displayName: 'Deploy to QA'
-        environment: 'qa-environment' # Referencia o ambiente que você criou
+        environment: 'qa-environment'
         pool:
           vmImage: 'ubuntu-latest'
         strategy:
           runOnce:
             deploy:
               steps:
-                # Baixa o artefato novamente
                 - download: current
                   artifact: 'drop'
 
-                # Aqui você adiciona as tarefas de deploy para o ambiente de QA
                 - script: echo 'Deploying to qa-environment...'
