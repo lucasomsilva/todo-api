@@ -34,8 +34,8 @@ Ela permite **criar, visualizar, atualizar e deletar tarefas**.
 O banco de dados está hospedado na nuvem.  
 Configure as credenciais de acesso no seu sistema como **variáveis de ambiente**:
 
-- `SPRING_DATASOURCE_USERNAME` → Usuário do banco  
-- `SPRING_DATASOURCE_PASSWORD` → Senha do banco  
+- `spring.datasource.username=${DB_USERNAME}` → Usuário do banco  
+- `spring.datasource.password=${DB_PASSWORD}` → Senha do banco  
 
 A **URL de conexão** e demais configs já estão no `application.properties`.  
 
