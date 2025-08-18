@@ -1,133 +1,202 @@
-# Todo API
+# 📌 Todo API
 
-API REST para gerenciamento de tarefas (to-do list), desenvolvida em Spring Boot.
+Esta é uma **API RESTful** para gerenciamento de tarefas (**to-do list**) desenvolvida em **Java** com o framework **Spring Boot**.  
+Ela permite **criar, visualizar, atualizar e deletar tarefas**.
 
-## Funcionalidades
+---
 
-- Criar tarefas
-- Listar todas as tarefas
-- Atualizar tarefas
-- Remover tarefas
+## 🚀 Funcionalidades
 
-## Endpoints
+- **POST /tasks** → Cria uma nova tarefa.  
+- **GET /tasks** → Retorna todas as tarefas existentes.  
+- **PUT /tasks/{id}** → Atualiza uma tarefa existente.  
+- **DELETE /tasks/{id}** → Remove uma tarefa com base no ID fornecido.  
 
-### Criar tarefa
-- **POST** `/todo`
-- **Body:**
-  ```json
-  {
-    "titulo": "Título da tarefa",
-    "descricao": "Descrição da tarefa"
-  }
-  ```
-- **Resposta:** 201 Created
-  ```json
-  {
-    "id": 1,
-    "titulo": "Título da tarefa",
-    "descricao": "Descrição da tarefa",
-    "status": "PENDENTE",
-    "createdAt": "2025-08-17T12:00:00"
-  }
-  ```
-- **Validações:**
-  - `titulo` e `descricao` são obrigatórios.
+---
 
-### Listar tarefas
-- **GET** `/todo`
-- **Resposta:** 200 OK
-  ```json
-  [
-    {
-      "id": 1,
-      "titulo": "Título da tarefa",
-      "descricao": "Descrição da tarefa",
-      "status": "PENDENTE",
-      "createdAt": "2025-08-17T12:00:00",
-      "updatedAt": null
-    }
-  ]
-  ```
-- **Validações:**
-  - Retorna erro se não houver tarefas cadastradas.
+## 🛠 Tecnologias
 
-### Atualizar tarefa
-- **PUT** `/todo/{id}`
-- **Body:**
-  ```json
-  {
-    "titulo": "Novo título",
-    "descricao": "Nova descrição",
-    "status": "ANDAMENTO"
-  }
-  ```
-- **Resposta:** 200 OK
-  ```json
-  {
-    "id": 1,
-    "titulo": "Novo título",
-    "descricao": "Nova descrição",
-    "status": "ANDAMENTO",
-    "createdAt": "2025-08-17T12:00:00",
-    "updatedAt": "2025-08-17T13:00:00"
-  }
-  ```
-- **Validações:**
-  - Retorna erro se a tarefa não existir.
-  - Campos não enviados mantêm o valor anterior.
+- Java 21  
+- Spring Boot 3.3.1  
+- Maven  
+- JPA / Hibernate  
+- SQL Server  
 
-### Remover tarefa
-- **DELETE** `/todo/{id}`
-- **Resposta:** 204 No Content
-- **Validações:**
-  - Retorna erro se a tarefa não existir.
+---
 
-## Status possíveis
-- `PENDENTE`
-- `ANDAMENTO`
-- `CONCLUIDA`
+## ⚙️ Como Rodar o Projeto
 
-## Como rodar o projeto
+### ✅ Pré-requisitos
+- **JDK 21**  
+- **Maven 3.8.1 ou superior**  
 
-### Pré-requisitos
-- Java 21
-- Maven
+### 🔧 Configuração do Banco de Dados
+O banco de dados está hospedado na nuvem.  
+Configure as credenciais de acesso no seu sistema como **variáveis de ambiente**:
 
-### Passos
-1. Clone o repositório:
-   ```sh
-   git clone <url-do-repositorio>
-   cd todo-api
-   ```
-2. Configure o banco de dados no arquivo `src/main/resources/application.properties` (já configurado para SQL Server na nuvem):
-   ```properties
-   spring.datasource.url=jdbc:sqlserver://todo-api.database.windows.net:1433;database=TodoListDB;encrypt=true;trustServerCertificate=true;loginTimeout=30;
-   spring.datasource.username=springuser@todo-api
-   spring.datasource.password=API-todo2025
-   spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
-   ```
-3. Execute a aplicação:
-   - Windows:
-     ```sh
-     .\mvnw.cmd spring-boot:run
-     ```
-   - Linux/Mac:
-     ```sh
-     ./mvnw spring-boot:run
-     ```
-4. Acesse: `http://localhost:8080/todo`
+- `SPRING_DATASOURCE_USERNAME` → Usuário do banco  
+- `SPRING_DATASOURCE_PASSWORD` → Senha do banco  
 
-## Estrutura do banco de dados
-A tabela `task` é criada automaticamente. Exemplo de estrutura:
-- id (int, PK)
-- titulo (varchar(50), obrigatório)
-- descricao (nvarchar, obrigatório)
-- status (nvarchar, obrigatório, default 'PENDENTE')
-- created_at (datetime2)
-- updated_at (datetime2)
+A **URL de conexão** e demais configs já estão no `application.properties`.  
 
-## Testes
-Para rodar os testes:
-```sh
-./mvnw test
+⚠️ O arquivo **`data.sql`** em `src/main/resources` é executado automaticamente para criar a tabela `task` na inicialização.
+
+---
+
+### ▶️ Executando a Aplicação
+
+Clone o repositório:
+
+```bash
+git clone https://github.com/lucasomsilva/todo-api.git
 ```
+
+Entre no diretório do projeto:
+
+```bash
+cd todo-api
+```
+
+Rode a aplicação:
+
+```bash
+mvn spring-boot:run
+```
+
+A API estará disponível em:  
+👉 [http://localhost:8080](http://localhost:8080)
+
+---
+
+## 📬 Exemplos de Requisições
+
+### 1️⃣ Criar uma Tarefa
+**POST /tasks**
+
+```http
+POST http://localhost:8080/tasks
+Content-Type: application/json
+```
+
+**Body**
+```json
+{
+  "titulo": "Escrever o README",
+  "descricao": "Documentar a API para o GitHub"
+}
+```
+
+✅ Resposta **201 Created**
+```json
+{
+  "id": 1,
+  "titulo": "Escrever o README",
+  "descricao": "Documentar a API para o GitHub",
+  "status": "PENDENTE",
+  "createdAt": "2025-08-18T10:30:00"
+}
+```
+
+❌ Resposta **400 Bad Request**
+```json
+{
+	"timestamp": "2025-08-18T17:06:09.548+00:00",
+	"status": 400,
+	"error": "Bad Request",
+	"path": "/todo"
+}
+```
+
+---
+
+### 2️⃣ Listar Todas as Tarefas
+**GET /tasks**
+
+✅ Resposta **200 OK**
+```json
+[
+  {
+    "id": 1,
+    "titulo": "Escrever o README",
+    "descricao": "Documentar a API para o GitHub",
+    "status": "PENDENTE",
+    "createdAt": "2025-08-18T10:30:00"
+  },
+  {
+    "id": 2,
+    "titulo": "Corrigir bugs",
+    "descricao": "Revisar o código e corrigir possíveis falhas",
+    "status": "EM_ANDAMENTO",
+    "createdAt": "2025-08-18T11:00:00"
+  }
+]
+```
+
+✅ Resposta **204 No Content** (lista vazia)
+```json
+[]
+```
+
+---
+
+### 3️⃣ Atualizar uma Tarefa
+**PUT /tasks/{id}**
+
+```http
+PUT http://localhost:8080/tasks/1
+Content-Type: application/json
+```
+
+**Body**
+```json
+{
+  "titulo": "Corrigir bugs da API",
+  "status": "CONCLUIDA"
+}
+```
+
+✅ Resposta **200 OK**
+```json
+{
+  "id": 1,
+  "titulo": "Corrigir bugs da API",
+  "descricao": "Documentar a API para o GitHub",
+  "status": "CONCLUIDA",
+  "createdAt": "2025-08-18T10:30:00",
+  "updatedAt": "2025-08-18T12:00:00"
+}
+```
+
+❌ Resposta **404 Not Found**
+```json
+{
+  "status": 404,
+  "error": "Recurso não encontrado",
+  "timestamp": "2025-08-18T12:05:00Z"
+}
+```
+
+---
+
+### 4️⃣ Excluir uma Tarefa
+**DELETE /tasks/{id}**
+
+```http
+DELETE http://localhost:8080/tasks/1
+```
+
+✅ Resposta **204 No Content**  
+(Sem corpo na resposta)
+
+❌ Resposta **404 Not Found**
+```json
+{
+	"timestamp": "2025-08-18T17:01:00.499+00:00",
+	"status": 404,
+	"error": "Not Found",
+	"path": "/todo/2"
+}
+```
+
+---
+
