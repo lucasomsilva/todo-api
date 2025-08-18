@@ -49,7 +49,7 @@ stages:
           steps:
           - task: AzureWebApp@1
             inputs:
-              azureSubscription: '<Sua-Conexao-De-Servico>'
+              azureSubscription: 'azure-todo-app-connection'
               appType: 'webAppLinux'
               appName: 'todo-list-dev'
               package: '$(Pipeline.Workspace)/todo-app-jar/**/*.jar'
@@ -68,7 +68,7 @@ stages:
           steps:
           - task: AzureWebApp@1
             inputs:
-              azureSubscription: '<Sua-Conexao-De-Servico>'
+              azureSubscription: 'azure-todo-app-connection'
               appType: 'webAppLinux'
               appName: 'todo-list-qa'
               package: '$(Pipeline.Workspace)/todo-app-jar/**/*.jar'
@@ -87,7 +87,7 @@ stages:
           steps:
           - task: AzureWebApp@1
             inputs:
-              azureSubscription: '<Sua-Conexao-De-Servico>'
+              azureSubscription: 'azure-todo-app-connection'
               appType: 'webAppLinux'
               appName: 'todo-list-prod'
               package: '$(Pipeline.Workspace)/todo-app-jar/**/*.jar'
