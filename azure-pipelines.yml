@@ -1,0 +1,93 @@
+trigger:
+- main
+- qa
+- dev
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  displayName: 'Build application'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build and package'
+    steps:
+    - task: JavaToolInstaller@0
+      inputs:
+        jdkVersionOption: '21'
+        jdkSourceOption: 'Preinstalled'
+
+    - task: Maven@4
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'package'
+        publishJUnitResults: false
+        javaHomeOption: 'JDK'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: false
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'todo-app-jar'
+        publishLocation: 'Container'
+
+- stage: DeployToDev
+  displayName: 'Deploy to Dev'
+  dependsOn: Build
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
+  jobs:
+  - deployment: DeployDev
+    displayName: 'Deploy to Dev Environment'
+    environment: 'dev-environment'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: '<Sua-Conexao-De-Servico>'
+              appType: 'webAppLinux'
+              appName: 'todo-list-dev'
+              package: '$(Pipeline.Workspace)/todo-app-jar/**/*.jar'
+
+- stage: DeployToQA
+  displayName: 'Deploy to QA'
+  dependsOn: Build
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/qa')
+  jobs:
+  - deployment: DeployQA
+    displayName: 'Deploy to QA Environment'
+    environment: 'qa-environment'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: '<Sua-Conexao-De-Servico>'
+              appType: 'webAppLinux'
+              appName: 'todo-list-qa'
+              package: '$(Pipeline.Workspace)/todo-app-jar/**/*.jar'
+
+- stage: DeployToProd
+  displayName: 'Deploy to Production'
+  dependsOn: Build
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+  jobs:
+  - deployment: DeployProd
+    displayName: 'Deploy to Prod Environment'
+    environment: 'prod-environment'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            inputs:
+              azureSubscription: '<Sua-Conexao-De-Servico>'
+              appType: 'webAppLinux'
+              appName: 'todo-list-prod'
+              package: '$(Pipeline.Workspace)/todo-app-jar/**/*.jar'
