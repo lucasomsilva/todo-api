@@ -14,9 +14,7 @@ on:
       - dev
       - feat/environments
 
-# Define os jobs para a pipeline
 jobs:
-  # Job de Build
   build:
     runs-on: ubuntu-latest
     steps:
@@ -38,7 +36,6 @@ jobs:
           name: todo-api-jar
           path: target/todo-api.jar
 
-  # Job de Deploy para o ambiente de Desenvolvimento (dev)
   deploy-dev:
     needs: build
     runs-on: ubuntu-latest
@@ -48,6 +45,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: todo-api-jar
+          path: .
 
       - name: Login to Azure
         uses: azure/login@v1
@@ -60,7 +58,6 @@ jobs:
           app-name: 'todo-api-dev'
           package: todo-api.jar
 
-  # Job de Deploy para o ambiente de QA
   deploy-qa:
     needs: deploy-dev
     runs-on: ubuntu-latest
@@ -71,6 +68,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: todo-api-jar
+          path: .
 
       - name: Login to Azure
         uses: azure/login@v1
@@ -83,7 +81,6 @@ jobs:
           app-name: 'todo-api-qa'
           package: todo-api.jar
 
-  # Job de Deploy para o ambiente de Produção
   deploy-prod:
     needs: deploy-qa
     runs-on: ubuntu-latest
@@ -94,6 +91,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: todo-api-jar
+          path: .
 
       - name: Login to Azure
         uses: azure/login@v1
