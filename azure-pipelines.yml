@@ -1,0 +1,31 @@
+trigger:
+  branches:
+    include:
+      - main
+      - qa
+      - dev
+pr:
+  branches:
+    include:
+      - main
+      - qa
+      - dev
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- checkout: self
+
+- task: JavaToolInstaller@0
+  displayName: 'Install JDK 21'
+  inputs:
+    versionSpec: '21'
+    jdkSource: 'PreInstalled'
+
+- task: Maven@4
+  displayName: 'Build with Maven'
+  inputs:
+    mavenPomFile: 'pom.xml'
+    goals: 'package -DskipTests'
+    publishJUnitResults: false
