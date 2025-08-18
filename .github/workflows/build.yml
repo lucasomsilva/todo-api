@@ -1,9 +1,10 @@
-name: $(Build.DefinitionName)-$(date:yyyyMMdd)-$(rev:r)
+name: Build and Deploy
 
 trigger:
   branches:
     include:
       - main
+      - qa
       - dev
       - feat/environments
 
@@ -11,6 +12,7 @@ pr:
   branches:
     include:
       - main
+      - qa
       - dev
       - feat/environments
 
@@ -18,34 +20,31 @@ stages:
   - stage: Build
     displayName: 'Build Project'
     jobs:
-      - job: BuildJob
+      - job: build
+        displayName: 'Maven Build'
         pool:
           vmImage: 'ubuntu-latest'
         steps:
           - checkout: self
-
           - task: JavaToolInstaller@0
-            displayName: 'Install JDK 21'
+            displayName: 'Set up JDK 21'
             inputs:
               versionSpec: '21'
               jdkSource: 'PreInstalled'
-
           - task: Maven@4
             displayName: 'Build with Maven'
             inputs:
               mavenPomFile: 'pom.xml'
               goals: 'package -DskipTests'
-              publishJUnitResults: false
-
-          - publish: $(System.DefaultWorkingDirectory)/target/todo-api.jar
+          - publish: '$(System.DefaultWorkingDirectory)/target/todo-api.jar'
             artifact: 'drop'
 
   - stage: DeployToDev
-    displayName: 'Deploy to Dev Environment'
+    displayName: 'Deploy to Dev'
     dependsOn: Build
     jobs:
-      - deployment: DeployDev
-        displayName: 'Deploy to Dev'
+      - deployment: DeployJobDev
+        displayName: 'Deploy to dev-environment'
         environment: 'dev-environment'
         pool:
           vmImage: 'ubuntu-latest'
@@ -53,19 +52,21 @@ stages:
           runOnce:
             deploy:
               steps:
-                - download: current
-                  artifact: 'drop'
-
-                - script: echo 'Deploying to dev-environment...'
+                - task: AzureWebApp@1
+                  displayName: 'Deploy to Dev App Service'
+                  inputs:
+                    azureSubscription: 'azure-todo-app-connection'
+                    appName: 'todo-api-dev'
+                    package: '$(Pipeline.Workspace)/drop/todo-api.jar'
+                    appType: 'webAppLinux'
 
   - stage: DeployToQA
-    displayName: 'Deploy to QA Environment'
+    displayName: 'Deploy to QA'
     dependsOn: DeployToDev
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main')
-
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
-      - deployment: DeployQA
-        displayName: 'Deploy to QA'
+      - deployment: DeployJobQA
+        displayName: 'Deploy to qa-environment'
         environment: 'qa-environment'
         pool:
           vmImage: 'ubuntu-latest'
@@ -73,7 +74,32 @@ stages:
           runOnce:
             deploy:
               steps:
-                - download: current
-                  artifact: 'drop'
+                - task: AzureWebApp@1
+                  displayName: 'Deploy to QA App Service'
+                  inputs:
+                    azureSubscription: 'azure-todo-app-connection'
+                    appName: 'todo-api-qa'
+                    package: '$(Pipeline.Workspace)/drop/todo-api.jar'
+                    appType: 'webAppLinux'
 
-                - script: echo 'Deploying to qa-environment...'
+  - stage: DeployToProd
+    displayName: 'Deploy to Prod'
+    dependsOn: DeployToQA
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - deployment: DeployJobProd
+        displayName: 'Deploy to prod-environment'
+        environment: 'prod-environment'
+        pool:
+          vmImage: 'ubuntu-latest'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: AzureWebApp@1
+                  displayName: 'Deploy to Prod App Service'
+                  inputs:
+                    azureSubscription: 'azure-todo-app-connection'
+                    appName: 'todo-api-prod'
+                    package: '$(Pipeline.Workspace)/drop/todo-api.jar'
+                    appType: 'webAppLinux'
