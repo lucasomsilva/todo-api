@@ -6,11 +6,15 @@ import java.sql.SQLException;
 
 public class SQLDatabaseConnection {
     public static void main(String[] args) {
+
+        String user = System.getenv("DB_USERNAME");
+        String password = System.getenv("DB_PASSWORD");
+
         String connectionUrl =
                 "jdbc:sqlserver://todo-api.database.windows.net:1433;"
                         + "database=TodoListDB;"
-                        + "user=springuser@todo-api;"
-                        + "password=API-todo2025;"
+                        + "user=" + user + ";"
+                        + "password=" + password + ";"
                         + "encrypt=true;"
                         + "trustServerCertificate=false;"
                         + "loginTimeout=30;";
