@@ -28,3 +28,12 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B package -DskipTests
+        env:
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
+      - name: Run Spring Boot Application
+        run: java -jar target/*.jar
+        env:
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
