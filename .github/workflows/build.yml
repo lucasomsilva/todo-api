@@ -1,105 +1,107 @@
 name: Build and Deploy
 
-trigger:
-  branches:
-    include:
+on:
+  push:
+    branches:
+      - main
+      - qa
+      - dev
+      - feat/environments
+  pull_request:
+    branches:
       - main
       - qa
       - dev
       - feat/environments
 
-pr:
-  branches:
-    include:
-      - main
-      - qa
-      - dev
-      - feat/environments
+# Define os jobs para a pipeline
+jobs:
+  # Job de Build
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-stages:
-  - stage: Build
-    displayName: 'Build Project'
-    jobs:
-      - job: build
-        displayName: 'Maven Build'
-        pool:
-          vmImage: 'ubuntu-latest'
-        steps:
-          - checkout: self
-          - task: JavaToolInstaller@0
-            displayName: 'Set up JDK 21'
-            inputs:
-              versionSpec: '21'
-              jdkSource: 'PreInstalled'
-          - task: Maven@4
-            displayName: 'Build with Maven'
-            inputs:
-              mavenPomFile: 'pom.xml'
-              goals: 'package -DskipTests'
-          - publish: '$(System.DefaultWorkingDirectory)/target/todo-api.jar'
-            artifact: 'drop'
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
-  - stage: DeployToDev
-    displayName: 'Deploy to Dev'
-    dependsOn: Build
-    jobs:
-      - deployment: DeployJobDev
-        displayName: 'Deploy to dev-environment'
-        environment: 'dev-environment'
-        pool:
-          vmImage: 'ubuntu-latest'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: AzureWebApp@1
-                  displayName: 'Deploy to Dev App Service'
-                  inputs:
-                    azureSubscription: 'azure-todo-app-connection'
-                    appName: 'todo-api-dev'
-                    package: '$(Pipeline.Workspace)/drop/todo-api.jar'
-                    appType: 'webAppLinux'
+      - name: Build with Maven
+        run: mvn -B package -DskipTests
 
-  - stage: DeployToQA
-    displayName: 'Deploy to QA'
-    dependsOn: DeployToDev
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-    jobs:
-      - deployment: DeployJobQA
-        displayName: 'Deploy to qa-environment'
-        environment: 'qa-environment'
-        pool:
-          vmImage: 'ubuntu-latest'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: AzureWebApp@1
-                  displayName: 'Deploy to QA App Service'
-                  inputs:
-                    azureSubscription: 'azure-todo-app-connection'
-                    appName: 'todo-api-qa'
-                    package: '$(Pipeline.Workspace)/drop/todo-api.jar'
-                    appType: 'webAppLinux'
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: todo-api-jar
+          path: target/todo-api.jar
 
-  - stage: DeployToProd
-    displayName: 'Deploy to Prod'
-    dependsOn: DeployToQA
-    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-    jobs:
-      - deployment: DeployJobProd
-        displayName: 'Deploy to prod-environment'
-        environment: 'prod-environment'
-        pool:
-          vmImage: 'ubuntu-latest'
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: AzureWebApp@1
-                  displayName: 'Deploy to Prod App Service'
-                  inputs:
-                    azureSubscription: 'azure-todo-app-connection'
-                    appName: 'todo-api-prod'
-                    package: '$(Pipeline.Workspace)/drop/todo-api.jar'
-                    appType: 'webAppLinux'
+  # Job de Deploy para o ambiente de Desenvolvimento (dev)
+  deploy-dev:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: dev-environment
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: todo-api-jar
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Dev App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'todo-api-dev'
+          package: todo-api.jar
+
+  # Job de Deploy para o ambiente de QA
+  deploy-qa:
+    needs: deploy-dev
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: qa-environment
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: todo-api-jar
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to QA App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'todo-api-qa'
+          package: todo-api.jar
+
+  # Job de Deploy para o ambiente de Produção
+  deploy-prod:
+    needs: deploy-qa
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: prod-environment
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: todo-api-jar
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Prod App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'todo-api-prod'
+          package: todo-api.jar
